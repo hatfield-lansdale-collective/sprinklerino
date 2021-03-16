@@ -1,0 +1,41 @@
+reporter (read moisture sensor :: red) :: custom hat
+	set (reading) to (analogRead (MOISTURE_SENSOR :: operators) :: sensing) // Read the sensor
+	set (mapped) to (map (reading) (DRY :: operators) (WET :: operators) [0] [100] :: operators) // Map the sensor from DRY .. WET to 0 .. 100
+	return (mapped) :: custom cap // Report the sensed value
+
+reporter (read knob (knob pin :: custom) :: reporter) :: hat custom
+	set (reading) to (analogRead (knob pin) :: sensing) // Read the knob
+	set (low) to (KNOB_DEAD :: operators) // Calculate the knob's dead zone
+	set (high) to ((1023) - (KNOB_DEAD :: operators))
+	set [mapped v] to (map (reading) (low) (high) [0] [100] :: operators) // map the knob's value to 0..100
+	return (mapped) :: custom cap // Report the sensed value
+
+
+when microcontroller starts :: control hat
+	set (SAMPLE_FREQ :: operators) to [2] // Loop frequency
+	set (MOISTURE_SENSOR :: operators) to (A0 :: operators) // Pin used for the moisture sensor
+	set (ENABLE_KNOB ::operators) to (A1 ::operators) // Pin used for the "pump on if too dry" knob
+	set (DISABLE_KNOB ::operators) to (A2 :: operators) // Pin used for the "pump off if too wet" knob
+	set (RELAY :: operators) to (D7 :: operators) // Pin for the relay 
+	set (DRY :: operators) to [580] // Low estimate of moisture sensor's state when dry
+	set (WET :: operators) to [235] // High estimate of moisture sensor's state when wet
+	set (KNOB_DEAD :: operators) to [25] // Dead zone to leave to account for edge problems on the knob.
+	set (PUMP_ON :: operators) to (LOW :: operators) // state the RELAY should be in to turn on the pump
+	set (PUMP_OFF :: operators) to (HIGH :: operators) // state the RELAY should be in to turn off the pump
+	start serial at (9600) baud :: motion
+	set pin (RELAY :: operators) mode to (OUTPUT v) :: motion // Make it so the RELAY pin is an output
+	set pin (RELAY  :: operators) to (PUMP_OFF :: operators) :: motion // Turn the pump off
+	forever
+		set [moisture v] to (read moisture sensor :: custom)
+		set [knob1 v] to (read knob (ENABLE_KNOB :: operators) :: custom)
+		set [knob2 v] to (read knob (DISABLE_KNOB :: operators) :: custom)
+		set [min_moist v] to (lowest of (knob1) (knob2) :: operators)
+		set [max_moist v] to (highest of (knob1) (knob2) :: operators)
+		if <(moisture) < (min_moist)> then
+			set pin (RELAY :: operators) to (PUMP_ON :: operators) :: motion // If it's less moist than the smaller knob's value, turn the pump off
+		end
+		if <(moisture) > (max_moist)> then
+			set pin (RELAY :: operators) to (PUMP_OFF :: operators) :: motion // If it's less moist than the larger knob's value, turn the pump on
+		end
+		delay ((1.0) / (SAMPLE_FREQ :: operators)) :: control
+	end

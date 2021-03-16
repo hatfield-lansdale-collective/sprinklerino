@@ -1,13 +1,15 @@
 graph Sprinklerino {
     node [shape=rect]
-    Wall [shape=record, label="<main>Wall|{<neutral>Neutral|<live>Live}"]
+
     Arduino [shape=record, label="<Vcc>Vcc|<A0>Analog0|<A1>Analog1|<A2>Analog2|<D7>Digital7|<GND>Ground|<Power>Arduino"]
-    Relay [shape=record, label="{<GND>Ground|<In1>In1|<Vcc>Vcc}|Relay|{<NC>N.C.|<C>Common|<NO>N.O.}"]
-    Pump [shape=record,label="{<Neutral>Neutral|<Live>Live}|Pump"]
+    Relay [shape=record, label="<PowerIn>Relay|{{<Signal>Signal|<GND>Ground}}|{<AOn>Always On|<NOff>Normally Off}"]
     Knob1 [shape=record, label="{{Knob1}|{<Vcc>Vcc|<Signal>S|<GND>Gnd}}"]
     Knob2 [shape=record, label="{{Knob2}|{<Vcc>Vcc|<Signal>S|<GND>Gnd}}"]
     Sensor [shape=record, label="{{Moisture Sensor}|{<Vcc>Vcc|<Signal>S|<GND>Gnd}}"]
-    Wall:main -- PowerBrick
+
+    Wall -- Relay:PowerIn [color="black",penwidth=6]
+    PowerBrick -- Relay:AOn [color="black",penwidth=6]
+    PowerBrick -- Arduino:Power [color="purple"]
 
     Knob1:Vcc -- Arduino:Vcc [color="red"]
     Knob1:GND -- Arduino:GND [color="black"]
@@ -21,12 +23,8 @@ graph Sprinklerino {
     Sensor:GND -- Arduino:GND [color="black"]
     Sensor:Signal -- Arduino:A0 [color="green", penwidth=2]
 
-    Arduino:Vcc -- Relay:Vcc [color="red"]
     Arduino:GND -- Relay:GND [color="black"]
-    Arduino:D7 -- Relay:In1 [color="blue", penwidth=2]
-
-    PowerBrick -- Arduino:Power [color="purple"]
-    Wall:live -- Relay:C [color="red", penwidth=6]
-    Relay:NO -- Pump:Live [color="red", penwidth=6]
-    Wall:neutral -- Pump:Neutral [color="gray", penwidth=6]
+    Arduino:D7 -- Relay:Signal [color="blue", penwidth=2]
+    
+    Relay:NOff -- Pump  [color="black",penwidth=6]
 }
