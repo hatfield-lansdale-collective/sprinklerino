@@ -22,7 +22,6 @@ when microcontroller starts :: control hat
 	set (KNOB_DEAD :: operators) to [25] // Dead zone to leave to account for edge problems on the knob.
 	set (PUMP_ON :: operators) to (LOW :: operators) // state the RELAY should be in to turn on the pump
 	set (PUMP_OFF :: operators) to (HIGH :: operators) // state the RELAY should be in to turn off the pump
-	start serial at (9600) baud :: motion
 	set pin (RELAY :: operators) mode to (OUTPUT v) :: motion // Make it so the RELAY pin is an output
 	set pin (RELAY  :: operators) to (PUMP_OFF :: operators) :: motion // Turn the pump off
 	forever
